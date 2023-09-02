@@ -1,6 +1,13 @@
 import { Module } from 'vuex'
 import { UserState, StoreState } from '../type'
-import { checkWxPersonalSession } from '@/services'
+import {
+  checkWxPersonalSession,
+  getUserInfo,
+  refreshToken as refreshTokenService,
+  pfLoginByWxPersonal as pfLoginByWxPersonalService,
+  sxwyLoginByWxPersonal as sxwyLoginByWxPersonalService,
+  sxwyLoginByWxPhoneAuth as sxwyLoginByWxPhoneAuthService
+} from '@/services'
 import { User, PfSession, SxwySession } from '@/types'
 
 export const SET_PF_SESSION = 'SET_PF_SESSION'
@@ -17,7 +24,7 @@ let lastLoginInitPromise: Promise<{
   current: User | null
 }> | null = null
 let lastPfLoginPromise: Promise<PfSession> | null = null
-let lastZtLoginPromise: Promise<SxwySession | null> | null = null
+let lastSxwyLoginPromise: Promise<SxwySession | null> | null = null
 let lastUserInitPromise: Promise<User | null> | null = null
 
 export const user: Module<UserState, StoreState> = {
@@ -91,24 +98,11 @@ export const user: Module<UserState, StoreState> = {
             ) {
               commit(SET_SXWY_SESSION, sxwySession)
               commit(SET_PF_SESSION, pfSession)
-              await dispatch('userInit', {})
+              await dispatch('userInit')
               resolve(state)
             } else {
               commit(CLEAR_STATE)
-              // #ifdef MP-WEIXIN
-              if (isQyEnvironment) {
-                await dispatch('ztLoginByWxCorporate', payload)
-                // 企微游客身份使用个微登录
-                if (!state.sxwySession) {
-                  await dispatch('ztLoginByWxPersonal', payload)
-                }
-              } else {
-                await dispatch('ztLoginByWxPersonal', payload)
-              }
-              // #endif
-              // #ifdef MP-DINGTALK
-              await dispatch('ztLoginByDdPersonal', payload)
-              // #endif
+              await dispatch('sxwyLoginByWxPersonal')
               resolve(state)
             }
           } catch (error) {
@@ -129,7 +123,7 @@ export const user: Module<UserState, StoreState> = {
       }
       lastPfLoginPromise = (async () => {
         try {
-          const pfSession = await pfLoginByWxPersonalMode()
+          const pfSession = await pfLoginByWxPersonalService()
           commit(SET_PF_SESSION, pfSession)
           return pfSession
         } catch (error) {
@@ -142,99 +136,75 @@ export const user: Module<UserState, StoreState> = {
       return lastPfLoginPromise
     },
 
-    /** 掌通登录（获取掌通会话）（微信手机号授权版） */
-    ztLoginByWxPhoneAuth(
-      { state, commit, dispatch },
-      payload: {
-        iv: string
-        encryptedData: string
-        wxPhoneCode?: string
-        childId?: string
-        classId?: string
-        studentId?: string
-        verifyId?: string
-        schoolId?: string
-        isForcePhoneAuthLogin?: boolean
-        mode?: 'auto' | 'parent' | 'teacher'
+    /** 登录（获取会话）（个人微信 unionId 版） */
+    sxwyLoginByWxPersonal({ state, commit, dispatch }) {
+      if (lastSxwyLoginPromise) {
+        return lastSxwyLoginPromise
       }
-    ) {
-      if (lastZtLoginPromise) {
-        return lastZtLoginPromise
-      }
-      lastZtLoginPromise = (async () => {
+      lastSxwyLoginPromise = (async () => {
         try {
           await dispatch('pfLoginByWxPersonal')
-          const sxwySession = await ztLoginByWxPhoneAuthMode({
-            unionId: state.pfSession!.unionId || '',
-            wxToken: state.pfSession!.token || '',
-            iv: payload.iv,
-            encryptedData: payload.encryptedData,
-            wxPhoneCode: payload.wxPhoneCode,
-            isForcePhoneAuthLogin: payload.isForcePhoneAuthLogin,
-            mode: payload?.mode
+          const sxwySession = await sxwyLoginByWxPersonalService({
+            openId: state.pfSession!.openId || '',
+            unionId: state.pfSession!.unionId || ''
           })
-          const isQyEnvironment =
-            // @ts-ignore
-            uni.getSystemInfoSync().environment === 'wxwork' // 是否是企微环境
-          // 企微环境下登录老师身份是游客返回 null
-          if (isQyEnvironment && !sxwySession) {
-            // 闭环接口：个微和企微都没有老师账号时调用
-            await createQiWeiSchool({
-              corpId: state.pfSession!.corpId || '',
-              wxAppType: uniSDKConfig.appType
-            })
+          // 未绑定返回 null
+          if (!sxwySession) {
             commit(SET_SXWY_SESSION, null)
             return null
           }
           commit(SET_SXWY_SESSION, sxwySession)
-          await dispatch('userInit', {
-            childId: payload?.childId,
-            classId: payload?.classId,
-            studentId: payload?.studentId,
-            verifyId: payload?.verifyId,
-            schoolId: payload?.schoolId
-          })
+          await dispatch('userInit')
           return sxwySession
         } catch (error) {
           commit(SET_SXWY_SESSION, null)
           throw error
         } finally {
-          lastZtLoginPromise = null
+          lastSxwyLoginPromise = null
         }
       })()
-      return lastZtLoginPromise
+      return lastSxwyLoginPromise
+    },
+
+    /** 登录（获取会话）（微信手机号授权版） */
+    sxwyLoginByWxPhoneAuth(
+      { commit, dispatch },
+      payload: {
+        iv: string
+        encryptedData: string
+      }
+    ) {
+      if (lastSxwyLoginPromise) {
+        return lastSxwyLoginPromise
+      }
+      lastSxwyLoginPromise = (async () => {
+        try {
+          await dispatch('pfLoginByWxPersonal')
+          const sxwySession = await sxwyLoginByWxPhoneAuthService({
+            iv: payload.iv,
+            encryptedData: payload.encryptedData
+          })
+          commit(SET_SXWY_SESSION, sxwySession)
+          await dispatch('userInit')
+          return sxwySession
+        } catch (error) {
+          commit(SET_SXWY_SESSION, null)
+          throw error
+        } finally {
+          lastSxwyLoginPromise = null
+        }
+      })()
+      return lastSxwyLoginPromise
     },
 
     /** 用户信息初始化 */
-    userInit(
-      { state, commit },
-      payload?: {
-        childId?: string
-        classId?: string
-        studentId?: string
-        schoolId?: string
-        verifyId?: string
-      }
-    ) {
+    userInit({ commit }) {
       if (lastUserInitPromise) {
         return lastUserInitPromise
       }
       lastUserInitPromise = (async () => {
         try {
-          const isQyEnvironment =
-            // @ts-ignore
-            uni.getSystemInfoSync().environment === 'wxwork' // 是否是企微环境
-          // 如果是企微环境并且是老师并且没有指定 schoolId，则应该切换到当前企业对应的学校（一定是老师）
-          if (
-            isQyEnvironment &&
-            state.sxwySession?.userType === 2 &&
-            !payload?.schoolId
-          ) {
-            payload = {
-              schoolId: state.pfSession?.schoolId
-            }
-          }
-          const userInfo = await getUserInfo(payload)
+          const userInfo = await getUserInfo()
           commit(SET_USER_INFO, userInfo)
           return userInfo
         } catch (error) {
@@ -249,9 +219,7 @@ export const user: Module<UserState, StoreState> = {
 
     /** 刷新 token */
     async refreshToken({ state, commit }) {
-      const result = await refreshTokenService({
-        Authorization: `Bearer ${state.sxwySession?.refreshToken}`
-      })
+      const result = await refreshTokenService()
       commit(SET_SXWY_SESSION, {
         ...state.sxwySession,
         ...result
@@ -268,6 +236,7 @@ export const user: Module<UserState, StoreState> = {
     ) {
       commit(CLEAR_STATE)
       if (payload) {
+        // @ts-ignore
         uni[payload.action]({ url: payload.url })
       }
     }

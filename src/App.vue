@@ -1,40 +1,28 @@
 <script lang="ts">
   import Vue from 'vue'
-  import { report } from '@/utils'
-
-  let lastStarupTime = 0
 
   export default Vue.extend({
     mpType: 'app',
-    async onLaunch(options) {
-      lastStarupTime = Date.now()
-      report.startup({
-        status: '1',
-        active_from: options?.scene || '',
-        call_from: options?.path || ''
-      })
+    onLaunch(options) {
+      console.log(
+        '%c APP onLaunch==========>',
+        'color: #4FC08D; font-weight: bold',
+        options
+      )
     },
     // @ts-ignore
     onShow(options) {
-      if (lastStarupTime > 0) {
-        lastStarupTime = Date.now()
-        report.startup({
-          status: '2',
-          active_from: options?.scene || '',
-          call_from: options?.path || ''
-        })
-      }
+      console.log(
+        '%c APP onShow==========>',
+        'color: #4FC08D; font-weight: bold',
+        options
+      )
     },
     onHide() {
-      if (lastStarupTime > 0) {
-        const options = uni.getEnterOptionsSync()
-        report.startup({
-          status: '0',
-          stay_time: (Date.now() - lastStarupTime) / 1000,
-          active_from: options?.scene || '',
-          call_from: options?.path || ''
-        })
-      }
+      console.log(
+        '%c APP onHide==========>',
+        'color: #4FC08D; font-weight: bold'
+      )
     }
   })
 </script>

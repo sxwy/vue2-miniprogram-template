@@ -1,6 +1,7 @@
 module.exports = {
   extends: ['@sxwy/eslint-config-vue/vue2-typescript'],
   globals: {
+    wx: true,
     uni: true
   },
   rules: {

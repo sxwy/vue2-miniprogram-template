@@ -1,11 +1,9 @@
-import { createZTHTTP, HTTP } from './core'
-import { getApiHost } from '../constants'
+import { createSXWYHTTP } from './core'
+import { BASE_API } from '@/constants'
 
-export let baseApi: HTTP
+const baseApi = createSXWYHTTP({
+  baseUrl: BASE_API,
+  header: { 'Content-Type': 'application/json' }
+})
 
-export const createBaseApi = () => {
-  baseApi = createZTHTTP({
-    baseUrl: getApiHost('base'),
-    header: { 'Content-Type': 'application/json' }
-  })
-}
+export default baseApi

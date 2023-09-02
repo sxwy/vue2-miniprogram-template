@@ -1,8 +1,8 @@
 import http, { HTTP } from './http'
 import { HTTPConfig } from './type'
 import { isSessionExpiredError } from './error'
-import { uniSDKConfig } from '../../config'
-import { handleLoginInvalid } from '../../utils'
+import store from '@/store'
+import { handleLoginInvalid } from '@/utils'
 
 let isRefreshToken = false
 let httpList: (() => void)[] = []
@@ -40,9 +40,8 @@ export default (
               })
             } else {
               isRefreshToken = true
-              const store = uniSDKConfig.useStore()
               try {
-                await store.dispatch(`${uniSDKConfig.userModule}/refreshToken`)
+                await store.dispatch('user/refreshToken')
               } catch (error) {
                 handleLoginInvalid()
                 httpList = []

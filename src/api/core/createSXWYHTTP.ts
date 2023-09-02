@@ -1,21 +1,18 @@
 import createDefaultHTTP from './createDefaultHTTP'
 import { HTTPConfig } from './type'
 import { isAuthorityError } from './error'
-import { uniSDKConfig } from '../../config'
-import { handleLoginInvalid } from '../../utils'
+import store from '@/store'
+import { handleLoginInvalid } from '@/utils'
 
 export default (defaultConfig: HTTPConfig) => {
   const defaultHTTP = createDefaultHTTP({ showError: false, ...defaultConfig })
 
   defaultHTTP.interceptors.request.use(
     (httpConfig) => {
-      const store = uniSDKConfig.useStore()
-      const sxwySession =
-        store.state[uniSDKConfig.userModule as 'user'].sxwySession
-      if (sxwySession?.accessToken && sxwySession?.sessionId) {
+      const sxwySession = store.state.user.sxwySession
+      if (sxwySession?.token) {
         httpConfig.header = {
-          Authorization: `Bearer ${sxwySession.accessToken}`,
-          Cookie: `JSESSIONID=${sxwySession.sessionId};ClientVersion=6.50`,
+          Authorization: `Bearer ${sxwySession.token}`,
           ...httpConfig.header
         }
       }

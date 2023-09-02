@@ -26,10 +26,10 @@ export const createError = (
 
 export const isSessionExpiredError = (error: any) => {
   const code = String(error?.code)
-  return code === '104' || code === '401' || code === '10005'
+  return code === '401'
 }
 
 export const isAuthorityError = (error: any) => {
   const code = String(error?.code)
-  return code === '403' || code === '10006' || code === '10007'
+  return code === '403'
 }

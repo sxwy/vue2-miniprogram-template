@@ -2,6 +2,10 @@
 export interface PfSession {
   /** uni.login 返回的 code */
   code?: string
+  /** openId（个人微信版） */
+  openId?: string
+  /** unionId（个人微信版） */
+  unionId?: string
 }
 
 /** 登录会话 */

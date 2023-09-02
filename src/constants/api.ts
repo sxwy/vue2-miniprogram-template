@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-const { PORT } = require('./constants/mocker')
+const { PORT } = require('./mocker')
 
 let BASE_API = ''
 
