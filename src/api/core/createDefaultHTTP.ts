@@ -14,7 +14,7 @@ export default (
   })
 
   httpInstance.interceptors.response.use(
-    async (response) => {
+    (response) => {
       if (Object.prototype.toString.call(response.data) === '[object Object]') {
         return response
       } else {
