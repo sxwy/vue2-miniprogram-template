@@ -8,7 +8,7 @@ export const LAUNCH_PAGE = '/pages/launch/index'
 export const WEBVIEW_PAGE = '/pages/webview/index'
 
 /** 登录首页地址 */
-export const LOGIN_HOME_PAGE = '/pages/launch/login'
+export const LOGIN_HOME_PAGE = '/pages/launch/login-phone-auth'
 
 /** 业务首页地址 */
 export const BUSINESS_HOME_PAGE = '/packages/home/index'

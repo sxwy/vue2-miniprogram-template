@@ -19,10 +19,28 @@
       }
     },
     {
-      "path": "pages/launch/login"
+      "path": "pages/launch/login-phone-auth",
+      "style": {
+        "navigationStyle": "custom"
+      }
     },
     {
-      "path": "pages/webview/index"
+      "path": "pages/launch/login-account-password",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/webview/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/authorization/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
     }
   ],
   "subPackages": [

@@ -58,9 +58,10 @@
   },
   "mp-weixin": {
     /* 微信小程序特有相关 */
-    "appid": "wx478a932105959333",
+    "appid": "wxa21311c9408a3dd2",
     "setting": {
       "urlCheck": false,
+      "condition": true,
       "es6": true,
       "postcss": true,
       "minified": true,
@@ -68,7 +69,8 @@
       "uglifyFileName": true
     },
     "usingComponents": true,
-    "lazyCodeLoading": "requiredComponents"
+    "lazyCodeLoading": "requiredComponents",
+    "__usePrivacyCheck__": true
   },
   "mp-alipay": {
     "usingComponents": true
