@@ -15,7 +15,7 @@ uni-app + Vue2 + TypeScript + uView2 项目模板
 
 ## 开发环境
 
-- Node.js 16+
+- Node.js 16.18.0
 - Visual Studio Code
 
   - [Auto Close Tag](https://marketplace.visualstudio.com/items?itemName=formulahendry.auto-close-tag)
