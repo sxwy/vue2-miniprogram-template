@@ -22,6 +22,11 @@
   import Vue from 'vue'
   import { APP_NAME } from '@/constants'
   import pageMixins from './mixins'
+  import {
+    isRefusalOfAuthorization,
+    isUpperFrequencyLimit,
+    isPrivacyAgreementDisagrees
+  } from './utils'
 
   export default Vue.extend({
     mixins: [pageMixins],
@@ -36,19 +41,18 @@
         payload: WechatMiniprogram.ButtonGetPhoneNumber
       ) {
         try {
-          // 拒绝授权 || 获取手机号次数上限
-          if (
-            payload.detail.errMsg === 'getPhoneNumber:fail user deny' ||
-            payload.detail.errMsg ===
-              'getPhoneNumber:fail appid no enough quota'
-          ) {
+          // 隐私协议不同意
+          if (isPrivacyAgreementDisagrees(payload.detail)) {
+            return
+          }
+          // 拒绝授权
+          if (isRefusalOfAuthorization(payload.detail)) {
             this.handleLoginTypeClick()
             return
           }
-          // 隐私协议不同意
-          if (
-            payload.detail.errMsg === 'privacy permission is not authorized'
-          ) {
+          // 获取手机号次数上限
+          if (isUpperFrequencyLimit(payload.detail)) {
+            this.handleLoginTypeClick()
             return
           }
           const iv = payload.detail.iv
